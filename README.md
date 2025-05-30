@@ -76,21 +76,164 @@ where stream > 100000000;
 ```
    
 3. List all albums along with their respective artists.
-4. Get the total number of comments for tracks where `licensed = TRUE`.
-5. Find all tracks that belong to the album type `single`.
-6. Count the total number of tracks by each artist.
+   
+```sql   
+   SELECT  Distinct album, artist from spotify 
+   order by 1;
+  ``` 
+5. Get the total number of comments for tracks where `licensed = TRUE`.
 
+ ```sql  
+SELECT sum(comments) as total_comments
+from spotify
+where licensed = 'true';
+```
+   
+7. Find all tracks that belong to the album type `single`.
+
+```sql  
+ select track from spotify
+ where album_type = 'single' ;
+ ```
+10. Count the total number of tracks by each artist.
+
+```sql
+ SELECT  artist, count(track) from spotify
+ group by artist 
+ order by 2 asc;
+```
 ### Medium Level
 1. Calculate the average danceability of tracks in each album.
+
+```sql
+   
+SELECT
+ album, 
+ AVG(danceability) as avg 
+FROM spotify
+GROUP BY album
+ORDER BY 2 DESC;
+ ```  
 2. Find the top 5 tracks with the highest energy values.
+
+```sql
+
+SELECT 
+track, 
+energy 
+FROM spotify
+order by energy desc
+limit 5;
+```
+   
 3. List all tracks along with their views and likes where `official_video = TRUE`.
+
+```sql
+
+SELECT 
+	track,
+	views,
+	likes
+FROM spotify
+where official_video = 'true'
+```   
 4. For each album, calculate the total views of all associated tracks.
+
+```sql
+
+SELECT album,
+SUM(views) AS total_views
+FROM spotify
+GROUP BY album
+ORDER BY total_views DESC;
+```   
 5. Retrieve the track names that have been streamed on Spotify more than YouTube.
 
+```sql
+    
+SELECT track FROM spotify 
+WHERE most_played_on = 'Spotify';
+```
+
 ### Advanced Level
-1. Find the top 3 most-viewed tracks for each artist using window functions.
-2. Write a query to find tracks where the liveness score is above the average.
-3. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
+1. List the top 3 albums with the most streamed tracks (sum of stream), but only include tracks where danceability > 0.7 and official_video = TRUE.
+
+```sql
+
+   SELECT
+album,
+SUM(stream) as total_streams FROM spotify
+WHERE danceability > 0.7 AND official_video = TRUE
+GROUP BY album
+ORDER BY total_streams DESC
+LIMIT 3;
+```
+2. Identify the artist with the most number of unique albums in the dataset.
+
+```sql
+
+SELECT artist,
+COUNT(DISTINCT album) as ALBUM_COUNT
+FROM spotify
+group by artist
+order by ALBUM_COUNT DESC
+LIMIT 2
+```
+3.Which track has the lowest acousticness among tracks with valence above the average valence of all tracks?
+
+```sql
+
+SELECT 
+  track,
+  acousticness,
+  valence
+FROM spotify
+WHERE valence > (SELECT AVG(valence) FROM spotify)
+ORDER BY acousticness ASC
+LIMIT 1;
+```
+
+4. Find the top 3 most-viewed tracks for each artist using window functions.
+
+```sql
+   
+SELECT * 
+FROM (
+	SELECT
+	artist,
+	track,
+	views,
+	Rank() OVER(PARTITION BY artist order by views Desc) as rank
+	FROM spotify
+	) AS ranked_tracks
+where rank <= 3;
+```
+5. Which album has the highest average tempo among albums that have more than 2 tracks?
+
+```sql
+
+ SELECT album,
+AVG(tempo) as AVG_TEMPO,
+COUNT(*) AS track_count
+FROM spotify
+GROUP BY album
+HAVING COUNT(*) > 2
+ORDER BY AVG_TEMPO DESC 
+LIMIT 1
+
+ ```  
+6. Write a query to find tracks where the liveness score is above the average.
+
+```sql
+   
+SELECT 
+	track, artist, liveness
+FROM spotify
+WHERE liveness > (SELECT AVG(liveness) FROM spotify)
+ ```
+  
+7. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
+
 ```sql
 WITH cte
 AS
@@ -107,9 +250,7 @@ SELECT
 FROM cte
 ORDER BY 2 DESC
 ```
-   
-5. Find tracks where the energy-to-liveness ratio is greater than 1.2.
-6. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
+
 
 
 Here’s an updated section for your **Spotify Advanced SQL Project and Query Optimization** README, focusing on the query optimization task you performed. You can include the specific screenshots and graphs as described.
